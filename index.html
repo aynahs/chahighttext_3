@@ -6,324 +6,367 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Tiny5&display=swap" rel="stylesheet">
-    <style>
-      :root {
-      --primary: #3498db;
-      --panel-bg: #ffffff;
-      --accent: #e67e22;
-      --ruler-color: #555;
-      }
-      body { 
-      font-family: "Tiny5", "DotGothic16", sans-serif; 
-      background: #f0f3f5; 
-      display: flex; 
-      margin: 0; 
-      padding: 0; 
-      height: 100vh; 
-      overflow: hidden;
-      }
-      /* 左側控制面板 */
-      .sidebar {
-      position: absolute; 
-      height: 90%;
-      width: 250px;
-      background: #DCD;
-      padding: 15px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
-      margin: 15px;
-      }
-      .char-tabs {
-      display: flex; 
-      gap: 5px; 
-      margin-bottom: 15px; 
-      overflow-x: auto; 
-      padding-bottom: 5px;
-      }
-      .tab {
-      padding: 8px 12px; 
-      background: #eee; 
-      border-radius: 5px; 
-      cursor: pointer; 
-      font-size: 12px; 
-      white-space: nowrap;
-      }
-      .tab.active { 
-      background: var(--primary); 
-      color: white; }
-      button {
-      padding: 6px 12px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-      background: #95a5a6;
-      color: white;
-      }
-      button.add-btn { background: #2ecc71; }
-      button.del-btn { background: #e74c3c; }
-      /* 右側繪圖區 */
-      .main-view {
-      width: 100vw;
-      height: 100vh;
-      background: #d1d8e0;
-      background-image: linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px);
-      background-size: 40px 40px;
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: flex-end;
-      padding-bottom: 60px; 
-      position: relative;
-      z-index: 1;
-      }
-      .stage {
-      position: relative; 
-      width: 100%; 
-      height: 100%;
-      display: flex; 
-      justify-content: center; 
-      align-items: flex-end;
-      }
-      /* 標尺容器 (跟隨角色縮放) */
-      .ruler-container {
-      position: absolute;
-      right: 30px;
-      bottom: 60px;
-      width: 100%;          
-      height: 750px;         /* 300cm * 2.5 */
-      transform-origin: bottom right;
-      pointer-events: none;
-      z-index: 5;
-      }
-      /* 底線 */
-      .ruler-container::after {
-      border-bottom: 1px solid red; 
-      content: '';
-      position: absolute;
-      right: 80px;               
-      width: 100%;  
-      height: 1px;
-      bottom: 0px;
-      background: red;
-      }
-      /* 標尺主體 */
-      .ruler {
-      width: 100%;
-      height: 100%;
-      border-right: 2px solid var(--ruler-color);
-      position: relative;
-      /* 繪製刻度線 *//* 第一層：短刻度 (每 10cm = 25px) *//* 第二層：長刻度 (每 50cm = 125px) */
-      background-image: 
-      repeating-linear-gradient(0deg, var(--ruler-color) 0 2px, transparent 0 25px),
-      repeating-linear-gradient(0deg, var(--ruler-color) 0 2px, transparent 0 125px);
-      background-size: 12px 100%, 25px 100%; 
-      background-repeat: no-repeat;
-      background-position: right top;
-      /* 數字佈局 */
-      display: flex;
-      flex-direction: column-reverse; /* 從底部 0 開始往上排 */
-      justify-content: space-between; /* 均勻分佈在 750px 高度內 */
-      counter-reset: ruler-val -50;   /* 起始值補償 */
-      }
-      /* 數字標籤節點 */
-      .ruler div {
-      counter-increment: ruler-val 50;
-      position: relative;
-      width: 100%;
-      height: 0; /* 定位點 */
-      }
-      /* 顯示數字文字 */
-      .ruler div::before {
-      content: counter(ruler-val);
-      position: absolute;
-      right: 35px;           /* 數字距離右側邊界距離 */
-      bottom: -0.6em;        /* 垂直置中校準：數字的中線對準刻度線 */
-      font-size: 14px;
-      color: var(--ruler-color);
-      text-align: right;
-      width: 30px;
-      }
-      /* ------------------- */
-      /* 角色位置 */
-      .character-container {
-      position: absolute;
-      bottom: 60px; 
-      display: flex; flex-direction: column; align-items: center;
-      transform-origin: bottom center;
-      transition: transform 0.1s ease;
-      pointer-events: none;
-      }
-      .part {
-      background-size: 100% 100%; 
-      background-repeat: 
-      no-repeat; background-position: center;
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      color: white; 
-      font-weight: bold; 
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-      background-color: rgba(189, 195, 199, 0.8);
-      pointer-events: auto;
-      }
-      .height-label {
-      position: absolute; 
-      bottom: -35px; 
-      background: rgba(0,0,0,0.6); color: white;
-      padding: 2px 12px; 
-      border-radius: 10px; 
-      font-size: 14px; 
-      font-weight: bold;
-      white-space: nowrap; 
-      pointer-events: none;
-      }
-      .section { 
-      margin-bottom: 15px; 
-      padding: 12px; 
-      background: #fafafa; 
-      border-radius: 8px; 
-      border: 1px solid #eee; 
-      }
-      h4 { 
-      margin: 0 0 10px 0; 
-      font-size: 14px; 
-      border-left: 4px solid var(--primary); 
-      padding-left: 8px; display: flex; 
-      justify-content: space-between; 
-      }
-      .row { 
-      display: flex; 
-      align-items: 
-      center; 
-      gap: 8px; 
-      margin-bottom: 8px; 
-      font-size: 12px; 
-      }
-      .row label { 
-      width: 95px; 
-      flex-shrink: 0; 
-      }
-      .row input[type="range"] { 
-      flex: 1; cursor: pointer; 
-      }
-      .val-text { 
-      width: 45px; 
-      color: var(--primary); 
-      font-weight: bold; 
-      text-align: right; 
-      }
-      .percent-row { 
-      display: flex; 
-      height: 18px; 
-      border-radius: 9px; 
-      overflow: hidden; 
-      margin: 10px 0; 
-      background: #ddd; 
-      font-size: 9px; 
-      line-height: 18px; 
-      color: white; 
-      text-align: center; 
-      }
-      /* ============================================================================= */
-      /* --- 1. 捲軸樣式 (Scrollbar) --- */
-      /* Firefox 支援 */
-      * {
-      scrollbar-width: thin;
-      scrollbar-color: #555 #222;
-      }
-      /* --- 2. 數字與文字輸入框樣式 (Input Box) --- */
-      input[type="number"], 
-      input[type="text"] {
-      background-color: #2c3e50;
-      border: 1px solid #455a64;
-      color: #ecf0f1;
-      padding: 5px 8px;
-      border-radius: 4px;
-      outline: none;
-      transition: border 0.3s;
-      }
-      input[type="number"]:focus {
-      border-color: #3498db;
-      }
-      /* 隱藏上下按鈕Chrome, Safari, Edge, Opera */
-      input::-webkit-outer-spin-button,
-      input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-      }
-      /* 隱藏上下按鈕Firefox */
-      input[type=number] {
-      -moz-appearance: textfield;
-      }    
-      /* --- 3. 滑桿樣式 (Range Slider) --- */
-      input[type="range"] {
-      -webkit-appearance: none; /* 隱藏系統預設外觀 */
-      appearance: none;
-      background: transparent;
-      cursor: pointer;
-      width: 100%;
-      }
-      /* 滑桿軌道 - Webkit必要 */
-      input[type="range"]::-webkit-slider-runnable-track {
-      background: #34495e;
-      height: 6px;
-      border-radius: 3px;
-      }
-      /* 滑桿軌道 - Firefox */
-      input[type="range"]::-moz-range-track {
-      background: #34495e;
-      height: 6px;
-      border-radius: 3px;
-      }
-      /* 滑桿控制紐 (圓點) - Webkit必要 */
-      input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      margin-top: -5px; /* 使圓點居中 */
-      background-color: #3498db;
-      height: 16px;
-      width: 16px;
-      border-radius: 50%;
-      border: 2px solid #ecf0f1;
-      transition: transform 0.1s;
-      }
-      /* 滑桿控制紐 (圓點) - Firefox */
-      input[type="range"]::-moz-range-thumb {
-      background-color: #3498db;
-      height: 14px;
-      width: 14px;
-      border-radius: 50%;
-      border: 2px solid #ecf0f1;
-      transition: transform 0.1s;
-      }
-      /* --- 4. 檔案上傳按鈕樣式 (File Upload) --- */
-      /* 使用 ::file-selector-button 偽元素 (現代瀏覽器通用) */
-      input[type="file"]::file-selector-button {
-      background-color: #34495e;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      transition: background 0.3s;
-      font-size: 12px;
-      margin-right: 10px;
-      }
-      input[type="file"]::file-selector-button:hover {
-      background-color: #2c3e50;
-      }
-      /* 火狐專用檔案上傳樣式修正 */
-      input[type="file"]::-moz-browse-button {
-      background-color: #34495e;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-      border: none;
-      }
-      /* ============================================================================= */
-    </style>
+
+<style> 
+
+:root {
+	--primary: #3498db;
+	--panel-bg: #ffffff;
+	--accent: #e67e22;
+	--ruler-color: #555;
+}
+body {
+	font-family: "Tiny5", "DotGothic16", sans-serif;
+	background: #f0f3f5;
+	display: flex;
+	margin: 0;
+	padding: 0;
+	height: 100vh;
+	overflow: hidden;
+}
+/* 左側控制面板 */
+
+.sidebar {
+	position: absolute;
+	height: 90%;
+	width: 250px;
+	background: #DCD;
+	padding: 15px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	z-index: 100;
+	margin: 15px;
+}
+.char-tabs {
+	display: flex;
+	gap: 5px;
+	margin-bottom: 15px;
+	overflow-x: auto;
+	padding-bottom: 5px;
+}
+.tab {
+	padding: 8px 12px;
+	background: #eee;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 12px;
+	white-space: nowrap;
+}
+.tab.active {
+	background: var(--primary);
+	color: white;
+}
+button {
+	padding: 6px 12px;
+	cursor: pointer;
+	border: none;
+	border-radius: 4px;
+	background: #95a5a6;
+	color: white;
+}
+button.add-btn {
+	background: #2ecc71;
+}
+button.del-btn {
+	background: #e74c3c;
+}
+/* 右側繪圖區 */
+
+.main-view {
+	width: 100vw;
+	height: 100vh;
+	background: #d1d8e0;
+	background-image: linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px);
+	background-size: 40px 40px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	padding-bottom: 60px;
+	position: relative;
+	z-index: 1;
+}
+.stage {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+}
+/* 標尺容器 (跟隨角色縮放) */
+
+.ruler-container {
+	position: absolute;
+	right: 30px;
+	bottom: 60px;
+	width: 100%;
+	height: 750px;
+	/* 300cm * 2.5 */
+	transform-origin: bottom right;
+	pointer-events: none;
+	z-index: 5;
+}
+/* 底線 */
+
+.ruler-container::after {
+	border-bottom: 1px solid red;
+	content: '';
+	position: absolute;
+	right: 80px;
+	width: 100%;
+	height: 1px;
+	bottom: 0px;
+	background: red;
+}
+/* 標尺主體 */
+
+.ruler {
+	width: 100%;
+	height: 100%;
+	border-right: 2px solid var(--ruler-color);
+	position: relative;
+	/* 繪製刻度線 */
+	/* 第一層：短刻度 (每 10cm = 25px) */
+	/* 第二層：長刻度 (每 50cm = 125px) */
+	background-image: repeating-linear-gradient(0deg, var(--ruler-color) 0 2px, transparent 0 25px), repeating-linear-gradient(0deg, var(--ruler-color) 0 2px, transparent 0 125px);
+	background-size: 12px 100%, 25px 100%;
+	background-repeat: no-repeat;
+	background-position: right top;
+	/* 數字佈局 */
+	display: flex;
+	flex-direction: column-reverse;
+	/* 從底部 0 開始往上排 */
+	justify-content: space-between;
+	/* 均勻分佈在 750px 高度內 */
+	counter-reset: ruler-val -50;
+	/* 起始值補償 */
+}
+/* 數字標籤節點 */
+
+.ruler div {
+	counter-increment: ruler-val 50;
+	position: relative;
+	width: 100%;
+	height: 0;
+	/* 定位點 */
+}
+/* 顯示數字文字 */
+
+.ruler div::before {
+	content: counter(ruler-val);
+	position: absolute;
+	right: 35px;
+	/* 數字距離右側邊界距離 */
+	bottom: -0.6em;
+	/* 垂直置中校準：數字的中線對準刻度線 */
+	font-size: 14px;
+	color: var(--ruler-color);
+	text-align: right;
+	width: 30px;
+}
+/* ------------------- */
+
+/* 角色位置 */
+
+.character-container {
+	position: absolute;
+	bottom: 60px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	transform-origin: bottom center;
+	transition: transform 0.1s ease;
+	pointer-events: none;
+}
+.part {
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: bold;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+	background-color: rgba(189, 195, 199, 0.8);
+	pointer-events: auto;
+}
+.height-label {
+	position: absolute;
+	bottom: -35px;
+	background: rgba(0, 0, 0, 0.6);
+	color: white;
+	padding: 2px 12px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: bold;
+	white-space: nowrap;
+	pointer-events: none;
+}
+.section {
+	margin-bottom: 15px;
+	padding: 12px;
+	background: #fafafa;
+	border-radius: 8px;
+	border: 1px solid #eee;
+}
+h4 {
+	margin: 0 0 10px 0;
+	font-size: 14px;
+	border-left: 4px solid var(--primary);
+	padding-left: 8px;
+	display: flex;
+	justify-content: space-between;
+}
+.row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	font-size: 12px;
+}
+.row label {
+	width: 95px;
+	flex-shrink: 0;
+}
+.row input[type="range"] {
+	flex: 1;
+	cursor: pointer;
+}
+.val-text {
+	width: 45px;
+	color: var(--primary);
+	font-weight: bold;
+	text-align: right;
+}
+.percent-row {
+	display: flex;
+	height: 18px;
+	border-radius: 9px;
+	overflow: hidden;
+	margin: 10px 0;
+	background: #ddd;
+	font-size: 9px;
+	line-height: 18px;
+	color: white;
+	text-align: center;
+}
+/* ============================================================================= */
+
+/* --- 1. 捲軸樣式 (Scrollbar) --- */
+
+/* Firefox 支援 */
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: #555 #222;
+}
+/* --- 2. 數字與文字輸入框樣式 (Input Box) --- */
+
+input[type="number"], input[type="text"] {
+	background-color: #2c3e50;
+	border: 1px solid #455a64;
+	color: #ecf0f1;
+	padding: 5px 8px;
+	border-radius: 4px;
+	outline: none;
+	transition: border 0.3s;
+}
+input[type="number"]:focus {
+	border-color: #3498db;
+}
+/* 隱藏上下按鈕Chrome, Safari, Edge, Opera */
+
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+/* 隱藏上下按鈕Firefox */
+
+input[type=number] {
+	-moz-appearance: textfield;
+}
+/* --- 3. 滑桿樣式 (Range Slider) --- */
+
+input[type="range"] {
+	-webkit-appearance: none;
+	/* 隱藏系統預設外觀 */
+	appearance: none;
+	background: transparent;
+	cursor: pointer;
+	width: 100%;
+}
+/* 滑桿軌道 - Webkit必要 */
+
+input[type="range"]::-webkit-slider-runnable-track {
+	background: #34495e;
+	height: 6px;
+	border-radius: 3px;
+}
+/* 滑桿軌道 - Firefox */
+
+input[type="range"]::-moz-range-track {
+	background: #34495e;
+	height: 6px;
+	border-radius: 3px;
+}
+/* 滑桿控制紐 (圓點) - Webkit必要 */
+
+input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	margin-top: -5px;
+	/* 使圓點居中 */
+	background-color: #3498db;
+	height: 16px;
+	width: 16px;
+	border-radius: 50%;
+	border: 2px solid #ecf0f1;
+	transition: transform 0.1s;
+}
+/* 滑桿控制紐 (圓點) - Firefox */
+
+input[type="range"]::-moz-range-thumb {
+	background-color: #3498db;
+	height: 14px;
+	width: 14px;
+	border-radius: 50%;
+	border: 2px solid #ecf0f1;
+	transition: transform 0.1s;
+}
+/* --- 4. 檔案上傳按鈕樣式 (File Upload) --- */
+
+/* 使用 ::file-selector-button 偽元素 (現代瀏覽器通用) */
+
+input[type="file"]::file-selector-button {
+	background-color: #34495e;
+	color: white;
+	padding: 6px 12px;
+	border-radius: 4px;
+	border: none;
+	cursor: pointer;
+	transition: background 0.3s;
+	font-size: 12px;
+	margin-right: 10px;
+}
+input[type="file"]::file-selector-button:hover {
+	background-color: #2c3e50;
+}
+/* 火狐專用檔案上傳樣式修正 */
+
+input[type="file"]::-moz-browse-button {
+	background-color: #34495e;
+	color: white;
+	padding: 6px 12px;
+	border-radius: 4px;
+	border: none;
+}
+/* ============================================================================= */
+
+</style>
+
   </head>
   <body>
     <div class="sidebar">
