@@ -42,6 +42,7 @@
      display: flex;
      flex-direction: column;
      z-index: 100;
+scrollbar-width: none;
  }
  .char-tabs {
      display: flex;
@@ -49,6 +50,9 @@
      margin-bottom: 15px;
      overflow-x: auto;
      padding-bottom: 5px;
+ /* 捲軸-Firefox */
+scrollbar-width: thin;
+scrollbar-color: #000077 #bada55;
  }
  .tab {
      padding: 8px 12px;
@@ -110,7 +114,7 @@
 
  .ruler-container {
      position: absolute;
-     right: 30px;
+     right: 10px;
      bottom: 60px;
      width: 100%;
      height: 700px;
@@ -153,7 +157,7 @@
      background-image: 
      repeating-linear-gradient(0deg, var(--ruler-color) 0 1px, transparent 0 35px), 
      repeating-linear-gradient(0deg, var(--ruler-color) 0 2px, transparent 0 175px);
-     background-size: 5px, 10px;
+     background-size: 5px, 15px;
      background-repeat: no-repeat;
      background-position: right top;
      display: flex;
@@ -161,16 +165,16 @@
      justify-content: space-between;
      counter-reset: ruler-val -50;
  }
- /* 數字標籤節點 */
 
+ /* 數字標籤節點 */
  .ruler div {
      counter-increment: ruler-val 50;
      position: relative;
      width: 100%;
      height: 0;
  }
- /* 顯示數字文字 */
 
+ /* 顯示數字文字 */
  .ruler div::before {
      content: counter(ruler-val);
      position: absolute;
@@ -180,8 +184,8 @@
      text-align: right;
      width: 30px;
  }
- /* 角色位置 */
 
+ /* 角色位置 */
  .character-container {
      position: absolute;
      bottom: 60px;
@@ -260,12 +264,6 @@
  }
  /*=================================================== */
 
- /* 捲軸-Firefox */
-
- * {
-     scrollbar-width: none;
- }
- /* 數字輸入框 */
 
  /* 數字輸入框*/
 
