@@ -63,20 +63,19 @@
      display: flex;
      gap: 6px;
      overflow-x: auto;
-     padding-bottom: 8px;
+     padding-bottom: 6px;
+     margin-bottom: 6px;
      /* 捲軸-Firefox */
      scrollbar-width: thin;
      scrollbar-color: var(--co01) var(--co04);
  }
  .tab {
      padding: 2px 8px;
-     background: var(--co07);
-     border-radius: 0px;
-     cursor: pointer;
+     background: var(--co03);
      white-space: nowrap;
  }
  .tab.active {
-     background: var(--co05);
+     background: var(--co04);
      color: var(--co02);
  }
  /* 按鈕 */
@@ -264,6 +263,19 @@ repeating-linear-gradient(0deg, var(--co06) 0 2px, transparent 0 175px);
      width: 10px;
      border: none;
  }
+/* 滑鈕-其它 */
+input[type="range"] {
+    -webkit-appearance: none; 
+     background: var(--co03);
+     height: 6px;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 15px;
+    width: 10px;
+    background-color: var(--co05);
+}
  /* -檔案上傳按鈕樣式 */
  input[type="file"]::file-selector-button {
      background-color: var(--co07);
@@ -305,8 +317,6 @@ repeating-linear-gradient(0deg, var(--co06) 0 2px, transparent 0 175px);
         <div class="a2"></div>
         <div class="a3"></div>
         <div class="char-tabs" id="charTabs"></div>
-      </div>
-      <div class="section">
 <button class="a" onclick="addPort()" type="button">Add</button>
 <button class="d" onclick="delPort()" type="button">Ðel</button>
 <button class="r" onclick="retPort()" type="button">Res</button>
